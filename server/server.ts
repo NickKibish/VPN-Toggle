@@ -11,6 +11,16 @@ interface ConnectNetworkMessage {
   networkId: string;
 }
 
+interface ListenNetworkStatusMessage {
+    type: 'listNetworkStatus';
+    networkId: string;
+}
+
+interface StopListeningNetworkStatusMessage {
+    type: 'stopListeningNetworkStatus';
+    networkId: string;
+}
+
 type ClientMessage = ListNetworksMessage | ConnectNetworkMessage;
 
 interface ErrorMessage {

@@ -4,10 +4,10 @@
 	"Author": "Nick Kibysh",
 	"Actions": [
 		{
-			"Name": "Counter",
-			"UUID": "com.nick-kibysh.vpn-toggle.increment",
+			"Name": "Toggle Connection",
+			"UUID": "com.nick-kibysh.vpn-toggle.toggle-connection",
 			"Icon": "imgs/actions/counter/icon",
-			"Tooltip": "Displays a count, which increments by one on press.",
+			"Tooltip": "Toggle Connection of the chosen VPN service",
 			"PropertyInspectorPath": "ui/increment-counter.html",
 			"Controllers": [
 				"Keypad"
@@ -33,10 +33,6 @@
 		{
 			"Platform": "mac",
 			"MinimumVersion": "10.15"
-		},
-		{
-			"Platform": "windows",
-			"MinimumVersion": "10"
 		}
 	],
 	"Nodejs": {
