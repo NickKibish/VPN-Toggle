@@ -8,11 +8,8 @@
 </head>
 
 <body>
-    <sdpi-item label="Host">
-        <sdpi-textfield setting="host"></sdpi-textfield>
-    </sdpi-item>
     <sdpi-item label="Port">
-        <sdpi-textfield setting="port"></sdpi-textfield>
+        <sdpi-textfield pattern="[0-9]*" id="port" setting="port" placeholder="8080" required></sdpi-textfield>
     </sdpi-item>
     <sdpi-item label="Connection">
         <sdpi-button id="connectButton">
@@ -21,10 +18,14 @@
     </sdpi-item>
     
     <sdpi-item label="Network">
-        <sdpi-select id="networkList" setting="network" placeholder="Chose a network">
+        <sdpi-select id="networkList" placeholder="Chose a network">
             
         </sdpi-select>
     </sdpi-item>
+    <sdpi-item>
+        <sdpi-button id="saveButton">
+            Save
+        </sdpi-button>
     <script src="script.js"></script>
 </body>
 </html>
