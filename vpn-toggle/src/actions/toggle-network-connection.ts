@@ -1,4 +1,4 @@
-import streamDeck, { action, DidReceiveSettingsEvent, KeyDownEvent, SingletonAction, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
+import streamDeck, { action, DidReceiveSettingsEvent, JsonValue, KeyDownEvent, SendToPluginEvent, SingletonAction, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
 import { NetworkService, NetworkServiceStatus } from "../../../shared/model";
 import { NetworkServiceManager } from "../service/network_service";
 
@@ -6,6 +6,7 @@ import { NetworkServiceManager } from "../service/network_service";
 @action({ UUID: "com.nick-kibysh.vpn-toggle.toggle-connection" })
 export class ToggleNetworkConnection extends SingletonAction<TogglerSettings> {
     private networkService: NetworkServiceManager = new NetworkServiceManager();
+    private readonly VERSION = "1.0.1";
     
     override onWillAppear(ev: WillAppearEvent<TogglerSettings>): Promise<void> | void {
         streamDeck.logger.info('Action appeared');
@@ -15,27 +16,27 @@ export class ToggleNetworkConnection extends SingletonAction<TogglerSettings> {
         streamDeck.logger.info('Action disappeared');
     }
 
+    override onSendToPlugin(ev: SendToPluginEvent<JsonValue, TogglerSettings>): Promise<void> | void {
+        streamDeck.logger.info('Send to plugin');
+        const payload = ev.payload;
+        
+    }
+
     override onDidReceiveSettings(ev: DidReceiveSettingsEvent<TogglerSettings>): Promise<void> {
-        streamDeck.logger.info('Settings received');
         return new Promise(async (resolve, reject) => {
             const globalSettings = await streamDeck.settings.getGlobalSettings();
-            const { settings } = ev.payload;
+            const settings = await ev.action.getSettings();
+
+            const networkId = settings.networkId;
+            const portStr = globalSettings.port;
             
-            if (settings.network) {
-                // streamDeck.logger.info('Selected network:');
-                streamDeck.logger.debug('Chosen network:', JSON.stringify(settings.network));
-            } else {
-                streamDeck.logger.info('No network selected');
-                streamDeck.logger.info('Settings:', JSON.stringify(settings));
-            }
+            if (portStr) {
+                const port = parseInt(portStr as string);
+                this.networkService.connectIfNeeded(port);
 
-            if (globalSettings.port) {
-                streamDeck.logger.info('Port:', globalSettings.port);
-            } else {
-                streamDeck.logger.info('Global Settings: ');
-                streamDeck.logger.info(globalSettings);
+                if (settings.networkId) {
+                    this.networkService.setNetwork(settings.network, settings.networkId);
             }
-
 
             resolve();
         });
@@ -44,6 +45,7 @@ export class ToggleNetworkConnection extends SingletonAction<TogglerSettings> {
 
 type TogglerSettings = {
     network?: NetworkService;
+    networkId?: string;
     status?: NetworkServiceStatus;
     error?: string;
 }

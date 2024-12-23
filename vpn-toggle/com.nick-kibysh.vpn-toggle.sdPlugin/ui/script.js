@@ -16,18 +16,17 @@ document.getElementById('networkList').addEventListener('input', () => {
 });
 
 // Disable Save button when it's clicked
-document.getElementById('saveButton').addEventListener('click', () => {
+document.getElementById('saveButton').addEventListener('click', async () => {
   const port = document.querySelector('sdpi-textfield[setting="port"]').value;
   const streamDeckClient = SDPIComponents.streamDeckClient;
   streamDeckClient.setGlobalSettings({ port: port });
 
-  // const network = document.getElementById('networkList').option.value;
-  
-  streamDeckClient.setSettings({
-    network: "1"
-  });
+  const networkName = document.getElementById('networkList').value;
 
-  alert('Settings saved!'); // Optional feedback
+  streamDeckClient.setSettings({
+    networkName: networkName,
+  });
+  alert('Saved Network: ' + networkName);
   changeDisableSaveButton(true); // Disable Save button
 });
 
@@ -82,17 +81,8 @@ function populateNetworkList(networks) {
 
   networks.forEach((network) => {
     const option = document.createElement('option');
-    const networkObj = {
-      name: network.name,
-      id: network.id,
-      hardwarePort: network.hardwarePort,
-      device: network.device,
-      status: network.status,
-      favorite: network.favorite,
-      order: network.order
-    }
-    option.value = networkObj;
-    option.textContent = networkObj.name; // Display network name
+    option.value = network.name; // Store network ID
+    option.textContent = network.name; // Display network name
     networkList.appendChild(option);
   });
 
