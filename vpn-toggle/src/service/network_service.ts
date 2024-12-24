@@ -1,4 +1,4 @@
-import { NetworkService, NetworkServiceStatus } from '../../../shared/model';
+import { NetworkServiceStatus } from '../../../shared/model';
 import { ServerMessage, ClientMessage } from '../../../server/server'
 import { WebSocket } from 'ws';
 import { config } from 'dotenv';
@@ -36,6 +36,11 @@ export class NetworkServiceManager {
 
     public close(): void {
         this.ws?.close();
+    }
+
+    public toggleConnection(): void {
+        const message: ClientMessage = { type: 'toggleNetworkConnection' };
+        this.ws?.send(JSON.stringify(message));
     }
 
 }

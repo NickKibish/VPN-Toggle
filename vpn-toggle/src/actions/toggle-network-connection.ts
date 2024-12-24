@@ -1,5 +1,5 @@
 import streamDeck, { action, DidReceiveSettingsEvent, JsonValue, KeyDownEvent, SendToPluginEvent, SingletonAction, WillAppearEvent, WillDisappearEvent } from "@elgato/streamdeck";
-import { NetworkService, NetworkServiceStatus } from "../../../shared/model";
+import { NetworkServiceStatus } from "../../../shared/model";
 import { NetworkServiceManager } from "../service/network_service";
 
 @action({ UUID: "com.nick-kibysh.vpn-toggle.toggle-connection" })
@@ -24,10 +24,18 @@ export class ToggleNetworkConnection extends SingletonAction<TogglerSettings> {
     }
 
     private updateStreamDeck(status: NetworkServiceStatus, ev: WillAppearEvent<TogglerSettings>): void {
-
-        const imagePath = status === 'connected'
-            ? 'imgs/actions/counter/connected.png'
-            : 'imgs/actions/counter/disconnected.png';
+        let imagePath: string = '';
+        switch (status) {
+            case 'connected':
+                imagePath = 'imgs/actions/counter/connected.png';
+                break;
+            case 'disconnected':
+                imagePath = 'imgs/actions/counter/disconnected.png';
+                break;
+            default:
+                imagePath = 'imgs/actions/counter/connecting.png';
+                break;
+        }
         
         streamDeck.logger.info('Action appeared2', imagePath);
         
@@ -37,11 +45,12 @@ export class ToggleNetworkConnection extends SingletonAction<TogglerSettings> {
     override onKeyDown(ev: KeyDownEvent<TogglerSettings>): Promise<void> | void {
         streamDeck.logger.info('Key down');
         ev.action.setImage('imgs/actions/counter/connecting.png');
+
+        this.networkService.toggleConnection();
     }
 }
 
 type TogglerSettings = {
-    network?: NetworkService;
     networkId?: string;
     status?: NetworkServiceStatus;
     error?: string;
