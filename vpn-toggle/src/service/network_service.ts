@@ -1,56 +1,41 @@
 import { NetworkService, NetworkServiceStatus } from '../../../shared/model';
+import { ServerMessage, ClientMessage } from '../../../server/server'
 import { WebSocket } from 'ws';
-import { ListenNetworkStatusMessage, ServerMessage } from '../../../server/server';
+import { config } from 'dotenv';
+import { streamDeck } from '@elgato/streamdeck';
+
 export class NetworkServiceManager {
-    private port?: number;
-    private ws?: WebSocket;
+    private ws: WebSocket | undefined;
+    private statusCallback?: (status: NetworkServiceStatus) => void;
+    // private PORT: number = parseInt(process.env.PORT!);
 
-    connectIfNeeded(port: number): void {
-        if (!this.ws) {
-            this.port = port;
-            this.connect();
-        } else if (this.ws && this.port !== port) {
-            this.ws.close();
-            this.port = port;
-            this.connect();
-        } else {
-            console.log('Already connected');
-        }
+    constructor() {
+        this.ws = new WebSocket(`ws://localhost:8080`);
+        this.open();
     }
 
-    private connect(): void {
-        this.ws = new WebSocket(`ws://localhost:${this.port}`);
-        this.ws.on('open', () => {
-            console.log('Connected to server');
-        });
+    public setStatusCallback(callback: (status: NetworkServiceStatus) => void): void {
+        this.statusCallback = callback;
+        streamDeck.logger.info('WS Callback set');
+    }
+
+    public open(): void {
+        this.ws = new WebSocket(`ws://localhost:8080`);
+        this.ws.onopen = () => {
+            streamDeck.logger.info('WS Web socket connected');
+        }
         this.ws.on('message', (data) => {
-            console.log(data);
-        });
-        this.ws.on('close', () => {
-            console.log('Connection closed');
-            this.ws = undefined;
-        });
-    }
-
-    listenToNetworkStatus(networkId: string): void {
-        if (!this.ws) {
-            return;
-        }
-        
-        const message: ListenNetworkStatusMessage = { type: 'listNetworkStatus', networkId };
-        this.ws.send(JSON.stringify(message));
-
-        this.ws.on('message', (data: string) => {
-            try {
-                const message: ListenNetworkStatusMessage = JSON.parse(data);
-                if (message.type === 'listNetworkStatus') {
-                    console.log(message.networkId);
-                }
-            } catch (e) {
-                console.error(e);
+            const serverMessage = JSON.parse(data.toString()) as ServerMessage;
+            streamDeck.logger.info('WS Network status changed:', 'message received' + serverMessage.type);
+            if (serverMessage.type === 'networkStatus' && this.statusCallback) {
+                this.statusCallback(serverMessage.status);
+                streamDeck.logger.info('WS Network status changed:', serverMessage.status);
             }
-
-            console.log(data);
         });
     }
+
+    public close(): void {
+        this.ws?.close();
+    }
+
 }

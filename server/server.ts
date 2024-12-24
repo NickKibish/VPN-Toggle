@@ -68,6 +68,7 @@ function broadcastNetworkStatus(status: NetworkServiceStatus): void {
 
 function sendNetworkStatus(ws: WebSocket, status: NetworkServiceStatus): void {
   const message: NetworkStatusMessage = { type: 'networkStatus', status };
+  console.log('Sending network status:', message);
   ws.send(JSON.stringify(message));
 }
 

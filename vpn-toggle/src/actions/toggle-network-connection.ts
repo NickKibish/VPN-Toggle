@@ -2,44 +2,41 @@ import streamDeck, { action, DidReceiveSettingsEvent, JsonValue, KeyDownEvent, S
 import { NetworkService, NetworkServiceStatus } from "../../../shared/model";
 import { NetworkServiceManager } from "../service/network_service";
 
-
 @action({ UUID: "com.nick-kibysh.vpn-toggle.toggle-connection" })
 export class ToggleNetworkConnection extends SingletonAction<TogglerSettings> {
-    private networkService: NetworkServiceManager = new NetworkServiceManager();
-    private readonly VERSION = "1.0.1";
+    private networkService: NetworkServiceManager = new NetworkServiceManager();    
     
     override onWillAppear(ev: WillAppearEvent<TogglerSettings>): Promise<void> | void {
         streamDeck.logger.info('Action appeared');
+        this.updateStreamDeck('disconnected', ev);
+        
+        this.networkService.setStatusCallback((status: NetworkServiceStatus) => {
+            streamDeck.logger.info('Network status changed:', status);
+            this.updateStreamDeck(status, ev);
+        });
+
+        this.networkService.open()
     }
     
     override onWillDisappear(ev: WillDisappearEvent<TogglerSettings>): Promise<void> | void {
         streamDeck.logger.info('Action disappeared');
+        this.networkService.close();
     }
 
-    override onSendToPlugin(ev: SendToPluginEvent<JsonValue, TogglerSettings>): Promise<void> | void {
-        streamDeck.logger.info('Send to plugin');
-        const payload = ev.payload;
+    private updateStreamDeck(status: NetworkServiceStatus, ev: WillAppearEvent<TogglerSettings>): void {
+
+        const imagePath = status === 'connected'
+            ? 'imgs/actions/counter/connected.png'
+            : 'imgs/actions/counter/disconnected.png';
         
+        streamDeck.logger.info('Action appeared2', imagePath);
+        
+        ev.action.setImage(imagePath); // Update the button icon
     }
 
-    override onDidReceiveSettings(ev: DidReceiveSettingsEvent<TogglerSettings>): Promise<void> {
-        return new Promise(async (resolve, reject) => {
-            const globalSettings = await streamDeck.settings.getGlobalSettings();
-            const settings = await ev.action.getSettings();
-
-            const networkId = settings.networkId;
-            const portStr = globalSettings.port;
-            
-            if (portStr) {
-                const port = parseInt(portStr as string);
-                this.networkService.connectIfNeeded(port);
-
-                if (settings.networkId) {
-                    this.networkService.setNetwork(settings.network, settings.networkId);
-            }
-
-            resolve();
-        });
+    override onKeyDown(ev: KeyDownEvent<TogglerSettings>): Promise<void> | void {
+        streamDeck.logger.info('Key down');
+        ev.action.setImage('imgs/actions/counter/connecting.png');
     }
 }
 
