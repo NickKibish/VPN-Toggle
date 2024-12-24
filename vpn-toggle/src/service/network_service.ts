@@ -1,16 +1,15 @@
 import { NetworkServiceStatus } from '../../../shared/model';
 import { ServerMessage, ClientMessage } from '../../../server/server'
 import { WebSocket } from 'ws';
-import { config } from 'dotenv';
 import { streamDeck } from '@elgato/streamdeck';
 
 export class NetworkServiceManager {
     private ws: WebSocket | undefined;
     private statusCallback?: (status: NetworkServiceStatus) => void;
-    // private PORT: number = parseInt(process.env.PORT!);
+    private PORT: number;
 
     constructor() {
-        this.ws = new WebSocket(`ws://localhost:8080`);
+        this.PORT = 8080;
         this.open();
     }
 
@@ -20,7 +19,7 @@ export class NetworkServiceManager {
     }
 
     public open(): void {
-        this.ws = new WebSocket(`ws://localhost:8080`);
+        this.ws = new WebSocket(`ws://localhost:${this.PORT}`);
         this.ws.onopen = () => {
             streamDeck.logger.info('WS Web socket connected');
         }
